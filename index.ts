@@ -23,3 +23,14 @@ async function main(): Promise<void> {
 
 await main()
 
+
+
+//"we are adding this code in ts step by step stay tune"
+
+function message(){
+    console.log("we are adding this code in ts step by step stay tune");
+    
+}
+
+message()
+
