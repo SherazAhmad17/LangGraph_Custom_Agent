@@ -47,9 +47,14 @@ async function main(): Promise<void> {
         messages: [{ role: "user", content: userInput }],
       });
 
-      console.log("finalState", finalState);
+      const finalMessage = finalState.messages[finalState.messages.length - 1];
 
-      console.log("you ask this: ", userInput);
+      console.log(finalMessage?.content);
+      
+
+      // console.log("finalState", finalState);
+
+      // console.log("you ask this: ", userInput);
     }
   } finally {
     readlineInterface.close();
