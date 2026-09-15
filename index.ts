@@ -1,6 +1,15 @@
 import { ChatGroq } from "@langchain/groq";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { TavilySearch } from "@langchain/tavily";
 import readline from "node:readline/promises";
+
+
+const searchTool = new TavilySearch({ maxResults: 3, topic: "general", });
+
+
+const tools = [searchTool];
+const toolNode = new ToolNode(tools)
 
 const llm = new ChatGroq({
   model: "openai/gpt-oss-120b",
@@ -11,7 +20,7 @@ const llm = new ChatGroq({
   // In production, environment variables should be validated
   // before the application starts.
   apiKey: process.env.GROQ_API_KEY,
-});
+}).bindTools(tools);
 
 
 
@@ -24,11 +33,20 @@ async function callModel(state : typeof MessagesAnnotation.State) {
   return {messages: [...state.messages, response]};
 }
 
+function shouldContinue(state : typeof MessagesAnnotation.State){
+  console.log('state', state);
+  
+  return '__end__';
+}
+
 //Build a graph
 const workflow = new StateGraph(MessagesAnnotation)
   .addNode("agent", callModel)
+  .addNode('tools', toolNode)
   .addEdge("__start__", "agent")
-  .addEdge("agent", "__end__");
+  .addEdge("agent", "__end__")
+  .addConditionalEdges('agent', shouldContinue)
+  
 
 //compile the graph
 const app = workflow.compile();
@@ -52,7 +70,7 @@ async function main(): Promise<void> {
       console.log(finalMessage?.content);
       
 
-      // console.log("finalState", finalState);
+      console.log("finalState", finalState);
 
       // console.log("you ask this: ", userInput);
     }
